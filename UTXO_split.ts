@@ -8,8 +8,8 @@ import { SeedWallet } from "utils/SeedWallet";
 // import { WIFWallet } from 'utils/WIFWallet'
 
 const TESTNET_FEERATE = 20;
-const SPLIT_UTXO_LIMIT = 10000;
-const SPLIT_COUNT = 5;
+const SPLIT_UTXO_LIMIT = 30000;
+const SPLIT_COUNT = 1;
 
 dotenv.config();
 Bitcoin.initEccLib(ecc);

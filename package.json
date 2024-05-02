@@ -12,12 +12,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@bitcoinerlab/secp256k1": "^1.1.1",
     "axios": "^1.6.5",
     "bip32": "^4.0.0",
     "bip39": "^3.1.0",
     "bitcoinjs-lib": "^6.1.5",
     "dotenv": "^16.3.2",
     "ecpair": "^2.1.0",
+    "runelib": "^1.0.6",
     "tiny-secp256k1": "^2.2.3"
   },
   "devDependencies": {

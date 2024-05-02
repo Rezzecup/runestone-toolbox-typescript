@@ -9,6 +9,7 @@ import { SeedWallet } from "utils/SeedWallet";
 
 const TESTNET_FEERATE = 20;
 const SEND_UTXO_LIMIT = 10000;
+const RECEIVEADDRESS = 'tb1pr62qc83slv3zy7mjaygeq2t2033hvslgljnr6lxylephys646ehqptvk8a';
 
 dotenv.config();
 Bitcoin.initEccLib(ecc);
@@ -30,7 +31,7 @@ const sendUTXO = async () => {
   redeemPsbt = wallet.signPsbt(redeemPsbt, wallet.ecPair)
   let redeemFee = redeemPsbt.extractTransaction().virtualSize() * TESTNET_FEERATE;
 
-  let psbt = sendUTXOPsbt(wallet, utxo, networkType, redeemFee);
+  let psbt = sendUTXOPsbt(wallet, utxo, networkType, redeemFee, RECEIVEADDRESS);
   let signedPsbt = wallet.signPsbt(psbt, wallet.ecPair)
   
   const txHex = signedPsbt.extractTransaction().toHex();

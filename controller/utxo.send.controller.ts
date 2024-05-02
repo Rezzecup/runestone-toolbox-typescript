@@ -33,7 +33,7 @@ export const redeemSendUTXOPsbt = (wallet: any, utxo: IUtxo, networkType: string
     return psbt;
 }
 
-export const sendUTXOPsbt = (wallet: any, utxo: IUtxo, networkType: string, fee: number): Bitcoin.Psbt => {
+export const sendUTXOPsbt = (wallet: any, utxo: IUtxo, networkType: string, fee: number, address: string): Bitcoin.Psbt => {
     const psbt = new Bitcoin.Psbt({
         network: networkType == "testnet" ? Bitcoin.networks.testnet : Bitcoin.networks.bitcoin
     });
@@ -49,7 +49,7 @@ export const sendUTXOPsbt = (wallet: any, utxo: IUtxo, networkType: string, fee:
     });
 
     psbt.addOutput({
-        address: wallet.address,
+        address: address,
         value: utxo.value - fee,
     });
 
