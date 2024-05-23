@@ -60,7 +60,7 @@ async function getTaprootScript() {
     console.log(error)
   }
 }
-getTaprootScript();
+// getTaprootScript();
 
 async function etching() {
   const keyPair = wallet.ecPair;
@@ -298,5 +298,5 @@ interface IUTXO {
 }
 
 
-// // main
-// etching();
+// main
+etching();

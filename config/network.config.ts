@@ -1,5 +1,6 @@
 const networkConfig = {
-    networkType: "testnet",
+    // networkType: "testnet",
+    networkType: "mainnet",
   };
   
   export default networkConfig;

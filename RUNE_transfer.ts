@@ -26,72 +26,21 @@ import {
 import networkConfig from "config/network.config";
 
 import { SeedWallet } from "utils/SeedWallet";
-// import { WIFWallet } from 'utils/WIFWallet'
+import { WIFWallet } from 'utils/WIFWallet'
 
 initEccLib(ecc as any);
 declare const window: any;
 const ECPair: ECPairAPI = ECPairFactory(ecc);
 const network = networks.testnet;
-
 const networkType: string = networkConfig.networkType;
-const seed: string = process.env.MNEMONIC as string;
-// const privateKey: string = process.env.PRIVATE_KEY as string;
 
-async function mintWithP2wpkh() {
-  const wallet = new SeedWallet({ networkType: networkType, seed: seed });
-  // const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
+// const seed: string = process.env.MNEMONIC as string;
+// const wallet = new SeedWallet({ networkType: networkType, seed: seed });
 
-  const mintstone = new Runestone(
-    [],
-    none(),
-    some(new RuneId(2586233, 1009)),
-    some(1)
-  );
-
-  const keyPair = wallet.ecPair;
-
-  const { address } = payments.p2wpkh({ pubkey: keyPair.publicKey, network });
-
-  console.log("address:", address);
-
-  const utxos = await waitUntilUTXO(address as string);
-  console.log(`Using UTXO ${utxos[0].txid}:${utxos[0].vout}`);
-
-  const psbt = new Psbt({ network });
-  psbt.addInput({
-    hash: utxos[0].txid,
-    index: utxos[0].vout,
-    witnessUtxo: {
-      value: utxos[0].value,
-      script: Address.toOutputScript(address as string, network),
-    },
-  });
-
-  psbt.addOutput({
-    script: mintstone.encipher(),
-    value: 0,
-  });
-
-  psbt.addOutput({
-    address: "tb1pjzwn9z0q39y45adgsscy5q4mrl0wrav47lemwvk83gnjtwv3dggqzlgdsl", // rune receive address
-    value: 5000,
-  });
-
-  const fee = 5000;
-
-  const change = utxos[0].value - fee - 5000;
-
-  psbt.addOutput({
-    address: "tb1pjzwn9z0q39y45adgsscy5q4mrl0wrav47lemwvk83gnjtwv3dggqzlgdsl", // change address
-    value: change,
-  });
-
-  await signAndSend(keyPair, psbt, address as string);
-}
+const privateKey: string = process.env.PRIVATE_KEY as string;
+const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
 async function mintWithTaproot() {
-  const wallet = new SeedWallet({ networkType: networkType, seed: seed });
-  // const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
   const keyPair = wallet.ecPair;
   const edicts: any = [];
@@ -158,57 +107,7 @@ async function mintWithTaproot() {
     value: change,
   });
 
-    await signAndSend(tweakedSigner, psbt, address as string);
-}
-
-async function mintWithP2pkh() {
-  const mintstone = new Runestone(
-    [],
-    none(),
-    some(new RuneId(2586233, 1009)),
-    some(1)
-  );
-
-  const keyPair = ECPair.fromWIF(
-    "cPwrst1ya98KhMRc5Bbj3MPB9AjQWvMAxjxQDWzv2Ak2Bq4EoXYP",
-    network
-  );
-
-  const { address } = payments.p2pkh({ pubkey: keyPair.publicKey, network });
-
-  console.log("address:", address);
-
-  const utxos = await waitUntilUTXO(address as string);
-  console.log(`Using UTXO ${utxos[0].txid}:${utxos[0].vout}`);
-
-  const rawTx = await getTx(utxos[0].txid);
-
-  const psbt = new Psbt({ network });
-  psbt.addInput({
-    hash: utxos[0].txid,
-    index: utxos[0].vout,
-    nonWitnessUtxo: Buffer.from(rawTx, "hex"),
-  });
-
-  psbt.addOutput({
-    script: mintstone.encipher(),
-    value: 0,
-  });
-
-  psbt.addOutput({
-    address: "tb1qh9338ymus4tcsv7g0xptwx4ksjsujqmlq945cp", // rune receive address
-    value: 10000,
-  });
-
-  const fee = 5000;
-  const change = utxos[0].value - fee - 10000;
-
-  psbt.addOutput({
-    address: "tb1qh9338ymus4tcsv7g0xptwx4ksjsujqmlq945cp", // change address
-    value: change,
-  });
-
-  await signAndSend(keyPair, psbt, address as string);
+  await signAndSend(tweakedSigner, psbt, address as string);
 }
 
 // main
@@ -257,7 +156,7 @@ export async function signAndSend(
 ) {
   if (process.env.NODE) {
     psbt.signInput(0, keyPair);
-    
+
     psbt.signInput(1, keyPair);
     psbt.finalizeAllInputs();
 
