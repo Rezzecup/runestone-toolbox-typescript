@@ -38,7 +38,7 @@ const networkType: string = networkConfig.networkType;
 const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
 // input data
-const txhash: string = '31b1ad7898cd5fad903598a9c389e4109bb086688ac481e1bfe8adc6e7a3651e';
+const txhash: string = '66505a1520d9b9a1b309ecef17a68adb5de166e0a7108a2be6d9b46d85fd951f';
 const memeType: string = 'text/html;charset=utf-8';
 const metaProtocol: Buffer = Buffer.concat([Buffer.from("parcel.bitmap", "utf8")]);
 const receiveAddress: string = 'tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn';
@@ -46,7 +46,7 @@ const metadata = {
   'type': 'Bitmap',
   'description': 'Bitmap Community Parent Ordinal'
 }
-const fee = 60000;
+const fee = 500000;
 const parentInscriptionTXID: string = 'd9b95d549219eebcd1be0360f41c7164c4ad040b716475630154f08263ab2fdf';
 const contentBufferData: Buffer = contentBuffer(`<!DOCTYPE html>
 <html>
@@ -331,7 +331,7 @@ export async function signAndSend(
   psbt.signInput(1, keypair);
   psbt.finalizeAllInputs()
   const tx = psbt.extractTransaction();
-  
+
   console.log(tx.virtualSize())
   console.log(tx.toHex());
 
