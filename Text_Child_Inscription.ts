@@ -17,10 +17,11 @@ import axios, { AxiosResponse } from "axios";
 import networkConfig from "config/network.config";
 import { WIFWallet } from 'utils/WIFWallet'
 import { SeedWallet } from "utils/SeedWallet";
+import cbor from 'cbor';
 
 //test
-// const network = networks.testnet;
-const network = networks.bitcoin;
+const network = networks.testnet;
+// const network = networks.bitcoin;
 
 initEccLib(ecc as any);
 const ECPair: ECPairAPI = ECPairFactory(ecc);
@@ -34,42 +35,47 @@ const networkType: string = networkConfig.networkType;
 const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
 export const contentBuffer = (content: string) => {
-  return Buffer.from(`<!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Build Your Own Recursive Ordinal</title>
-    </head>
-    <body style="margin: 0px">
-      <div>
-        <img style="width:100%;margin:0px" src="/content/${content}" />
-      </div>
-    </body>
-  </html>`, 'utf8')
+  return Buffer.from(content, 'utf8')
 }
 
-const txhash: string = '9bcaa71d811e34b7176f50982712fb5f4b7726ae2084cb0f886e7eb3a4db5d69';
-const txidBuffer = Buffer.from(txhash, 'hex')
-const inscriptionBuffer = txidBuffer.reverse()
+// inputs
+const txhash: string = '31b1ad7898cd5fad903598a9c389e4109bb086688ac481e1bfe8adc6e7a3651e';
+const receiveAddress: string = 'tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn';
+const memeType: string = 'text/plain;charset=utf-8';
+const metadata = {
+  'type': 'Bitmap',
+  'description': 'Bitmap Community Parent Ordinal'
+}
+const metaProtocol: Buffer = Buffer.concat([Buffer.from("parcel.bitmap", "utf8")]);
+const fee = 60000;
+const contentBufferData: Buffer = contentBuffer('0.364972.bitmap')
+
+
+const parentInscriptionTXID: string = 'd9b95d549219eebcd1be0360f41c7164c4ad040b716475630154f08263ab2fdf';
+const revealtxIDBuffer = Buffer.from(parentInscriptionTXID, 'hex');
+const inscriptionBuffer = revealtxIDBuffer.reverse();
 const pointer1: number = 546 * 1;
 const pointer2: number = 546 * 2;
 const pointer3: number = 546 * 3;
-const pointerBuffer1: Buffer = Buffer.from(pointer1.toString(16).padStart(4, '0'), 'hex');
-const pointerBuffer2: Buffer = Buffer.from(pointer2.toString(16).padStart(4, '0'), 'hex');
-const pointerBuffer3: Buffer = Buffer.from(pointer3.toString(16).padStart(4, '0'), 'hex');
+const pointerBuffer1: Buffer = Buffer.from(pointer1.toString(16).padStart(4, '0'), 'hex').reverse();
+const pointerBuffer2: Buffer = Buffer.from(pointer2.toString(16).padStart(4, '0'), 'hex').reverse();
+const pointerBuffer3: Buffer = Buffer.from(pointer3.toString(16).padStart(4, '0'), 'hex').reverse();
+const metadataBuffer = cbor.encode(metadata);
 
-const content1 = '6cfd2a4ca879ba92e328acd0e2e8b0e42726bc6ff2b78d10706e138fb38b10f6i0'
-const content2 = '9566bc0e79ca905bf01db55bf154acb3a04e00e8bb2e9d4903639c5badf66d42i0'
-const contentBufferData1 = Buffer.from('0.364972.bitmap', 'utf8')
-const contentBufferData2 = Buffer.from('1.364972.bitmap', 'utf8')
+const splitBuffer = (buffer: Buffer, chunkSize: number) => {
+  let chunks = [];
+  for (let i = 0; i < buffer.length; i += chunkSize) {
+    const chunk = buffer.subarray(i, i + chunkSize);
+    chunks.push(chunk);
+  }
+  return chunks;
+};
+const contentBufferArray: Array<Buffer> = splitBuffer(contentBufferData, 400)
 
 export function createChildInscriptionTapScript(): Array<Buffer> {
-  
-  const metadataBuffer = Buffer.from('a26474797065644269746d61706b6465736372697074696f6e78184269746d617020436f6d6d756e697479204f72646e616c73', 'hex');
-  
+
   const keyPair = wallet.ecPair;
-  const childOrdinalStacks: any = [
+  let childOrdinalStacks: any = [
     toXOnly(keyPair.publicKey),
     opcodes.OP_CHECKSIG,
     opcodes.OP_FALSE,
@@ -77,38 +83,27 @@ export function createChildInscriptionTapScript(): Array<Buffer> {
     Buffer.from("ord", "utf8"),
     1,
     1,
-    Buffer.concat([Buffer.from("text/html;charset=utf-8", "utf8")]),
-    1,
-    3,
-    inscriptionBuffer,
+    Buffer.concat([Buffer.from(memeType, "utf8")]),
     1,
     2,
     pointerBuffer1,
     1,
-    5,
-    metadataBuffer,
-    opcodes.OP_0,
-    contentBufferData1,
-    opcodes.OP_ENDIF,
-    opcodes.OP_FALSE,
-    opcodes.OP_IF,
-    Buffer.from("ord", "utf8"),
-    1,
-    1,
-    Buffer.concat([Buffer.from("text/html;charset=utf-8", "utf8")]),
-    1,
     3,
     inscriptionBuffer,
     1,
-    2,
-    pointerBuffer2,
-    1,
     5,
     metadataBuffer,
-    opcodes.OP_0,
-    contentBufferData2,
-    opcodes.OP_ENDIF
+    1,
+    7,
+    metaProtocol,
+    opcodes.OP_0
   ];
+  contentBufferArray.forEach((item: Buffer) => {
+    childOrdinalStacks.push(item)
+  })
+  childOrdinalStacks.push(opcodes.OP_ENDIF)
+
+  console.log(childOrdinalStacks)
 
   return childOrdinalStacks;
 }
@@ -139,7 +134,6 @@ async function childInscribe() {
   console.log("send coin to address", address);
 
   const utxos = await waitUntilUTXO(address as string);
-  console.log(`Using UTXO ${utxos[0].txid}:${utxos[0].vout}`);
 
   const psbt = new Psbt({ network });
   const parentInscriptionUTXO = {
@@ -171,27 +165,20 @@ async function childInscribe() {
     ],
   });
 
-  const fee = 4500;
-
-  const change = utxos[0].value - 546 * 3 - fee;
+  const change = utxos[0].value - 546 * 2 - fee;
 
   psbt.addOutput({
-    address: "bc1pjr267uqlj79zqmv5m9vftvjp6m8fycwm8mq63497tyudq3kp3a7qh49jue", //Destination Address
+    address: receiveAddress, //Destination Address
     value: 546,
   });
 
   psbt.addOutput({
-    address: "bc1pjr267uqlj79zqmv5m9vftvjp6m8fycwm8mq63497tyudq3kp3a7qh49jue", //Destination Address
+    address: receiveAddress, //Destination Address
     value: 546,
   });
 
   psbt.addOutput({
-    address: "bc1pjr267uqlj79zqmv5m9vftvjp6m8fycwm8mq63497tyudq3kp3a7qh49jue", //Destination Address
-    value: 546,
-  });
-
-  psbt.addOutput({
-    address: "bc1pjr267uqlj79zqmv5m9vftvjp6m8fycwm8mq63497tyudq3kp3a7qh49jue", // Change address
+    address: receiveAddress, // Change address
     value: change,
   });
 
@@ -210,7 +197,7 @@ export async function signAndSend(
   psbt.finalizeAllInputs()
   const tx = psbt.extractTransaction();
   console.log(tx.virtualSize())
-  console.log(`Broadcasting Transaction Hex: ${tx.toHex()}`);
+  console.log(tx.toHex());
 
   // const txid = await broadcast(tx.toHex());
   // console.log(`Success! Txid is ${txid}`);
@@ -248,10 +235,9 @@ export async function getTx(id: string): Promise<string> {
   return response.data;
 }
 
-
 const blockstream = new axios.Axios({
-  // baseURL: `https://mempool.space/testnet/api`,
-  baseURL: `https://mempool.space/api`,
+  baseURL: `https://mempool.space/testnet/api`,
+  // baseURL: `https://mempool.space/api`,
 });
 
 export async function broadcast(txHex: string) {
@@ -298,3 +284,4 @@ interface IUTXO {
   };
   value: number;
 }
+

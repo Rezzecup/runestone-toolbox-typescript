@@ -18,10 +18,10 @@ import axios, { AxiosResponse } from "axios";
 import networkConfig from "config/network.config";
 import { WIFWallet } from 'utils/WIFWallet'
 import { SeedWallet } from "utils/SeedWallet";
-
+import cbor from 'cbor'
 //test
-// const network = networks.testnet;
-const network = networks.bitcoin;
+const network = networks.testnet;
+// const network = networks.bitcoin;
 
 initEccLib(ecc as any);
 const ECPair: ECPairAPI = ECPairFactory(ecc);
@@ -34,12 +34,16 @@ const privateKey: string = process.env.PRIVATE_KEY as string;
 const networkType: string = networkConfig.networkType;
 const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
+const receiveAddress: string = "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn";
+const metadata = {
+  'type': 'Bitmap',
+  'description': 'Bitmap Community Parent Ordinal'
+}
+const metadataBuffer = cbor.encode(metadata);
+const transaction_fee = 35000;
+
+
 export function createparentInscriptionTapScript(): Array<Buffer> {
-  const metadata = {
-    'type': 'Bitmap',
-    'description': 'Bitmap Community Ordinals'
-  }
-  const metadataBuffer = Buffer.from(JSON.stringify(metadata), "utf8")
 
   const keyPair = wallet.ecPair;
   const parentOrdinalStacks: any = [
@@ -55,7 +59,7 @@ export function createparentInscriptionTapScript(): Array<Buffer> {
     5,
     metadataBuffer,
     opcodes.OP_0,
-    Buffer.concat([Buffer.from("1.364972.bitmap", "utf8")]),
+    Buffer.concat([Buffer.from("364972.bitmap", "utf8")]),
     opcodes.OP_ENDIF,
   ];
   return parentOrdinalStacks;
@@ -105,17 +109,16 @@ async function parentInscribe() {
     ],
   });
 
-  const fee = 2600;
 
-  const change = utxos[0].value - 546 - fee;
+  const change = utxos[0].value - 546 - transaction_fee;
 
   psbt.addOutput({
-    address: "bc1pjr267uqlj79zqmv5m9vftvjp6m8fycwm8mq63497tyudq3kp3a7qh49jue", //Destination Address
+    address: receiveAddress, //Destination Address
     value: 546,
   });
 
   psbt.addOutput({
-    address: "bc1pjr267uqlj79zqmv5m9vftvjp6m8fycwm8mq63497tyudq3kp3a7qh49jue", // Change address
+    address: receiveAddress, // Change address
     value: change,
   });
 
@@ -131,7 +134,10 @@ export async function signAndSend(
   psbt.signInput(0, keypair);
   psbt.finalizeAllInputs()
   const tx = psbt.extractTransaction();
+
+  console.log(tx.virtualSize())
   console.log(tx.toHex())
+
   // const txid = await broadcast(tx.toHex());
   // console.log(`Success! Txid is ${txid}`);
 }
@@ -160,36 +166,29 @@ export async function waitUntilUTXO(address: string) {
     intervalId = setInterval(checkForUtxo, 4000);
   });
 }
-
 export async function getTx(id: string): Promise<string> {
   const response: AxiosResponse<string> = await blockstream.get(
     `/tx/${id}/hex`
   );
   return response.data;
 }
-
-
 const blockstream = new axios.Axios({
-  // baseURL: `https://mempool.space/testnet/api`,
-  baseURL: `https://mempool.space/api`,
+  baseURL: `https://mempool.space/testnet/api`,
+  // baseURL: `https://mempool.space/api`,
 });
-
 export async function broadcast(txHex: string) {
   const response: AxiosResponse<string> = await blockstream.post("/tx", txHex);
   return response.data;
 }
-
 function tapTweakHash(pubKey: Buffer, h: Buffer | undefined): Buffer {
   return crypto.taggedHash(
     "TapTweak",
     Buffer.concat(h ? [pubKey, h] : [pubKey])
   );
 }
-
 function toXOnly(pubkey: Buffer): Buffer {
   return pubkey.subarray(1, 33);
 }
-
 function tweakSigner(signer: any, opts: any = {}) {
   let privateKey = signer.privateKey;
   if (!privateKey) {
@@ -206,7 +205,6 @@ function tweakSigner(signer: any, opts: any = {}) {
     network: opts.network,
   });
 }
-
 interface IUTXO {
   txid: string;
   vout: number;
