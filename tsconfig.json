@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2015",                          
+    // "module": "esnext",
+    // "moduleResolution": "bundler",
     "module": "commonjs",                    
+    "target": "es2015",                          
     "lib": ["es6"],                     
     "allowJs": true,
     "outDir": "build",

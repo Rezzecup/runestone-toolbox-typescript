@@ -22,8 +22,8 @@ initEccLib(ecc as any);
 declare const window: any;
 const ECPair: ECPairAPI = ECPairFactory(ecc);
 const network = networks.testnet;
-
 const networkType: string = networkConfig.networkType;
+
 const privateKey: string = process.env.PRIVATE_KEY as string;
 const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
