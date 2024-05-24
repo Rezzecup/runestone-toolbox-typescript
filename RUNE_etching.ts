@@ -27,29 +27,29 @@ import {
 import networkConfig from "config/network.config";
 
 import { SeedWallet } from "utils/SeedWallet";
-// import { WIFWallet } from 'utils/WIFWallet'
+import { WIFWallet } from 'utils/WIFWallet'
 
 initEccLib(ecc as any);
 declare const window: any;
 const ECPair: ECPairAPI = ECPairFactory(ecc);
 const network = networks.testnet;
-
 const networkType: string = networkConfig.networkType;
-const seed: string = process.env.MNEMONIC as string;
-// const privateKey: string = process.env.PRIVATE_KEY as string;
 
+// const seed: string = process.env.MNEMONIC as string;
+// const wallet = new SeedWallet({ networkType: networkType, seed: seed });
+
+const privateKey: string = process.env.PRIVATE_KEY as string;
+const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
 async function etching() {
-  const wallet = new SeedWallet({ networkType: networkType, seed: seed });
-  // const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
-  const name = "RUNEROCKSCHAINWAVE";
+  const name = "CHAINWAVE•RESURSIVE•RUNE";
 
   const keyPair = wallet.ecPair;
 
   const ins = new EtchInscription();
 
-  ins.setContent("text/plain", Buffer.from("RuneRocksChainwave", "utf-8"));
+  ins.setContent("text/plain", Buffer.from("Chainwave Resursive Rune", "utf-8"));
   ins.setRune(name);
 
   const etching_script_asm = `${toXOnly(keyPair.publicKey).toString(
@@ -129,17 +129,17 @@ async function etching() {
     value: 0,
   });
 
-  const fee = 5000;
+  const fee = 45000;
 
   const change = utxos[0].value - 546 - fee;
 
   psbt.addOutput({
-    address: "tb1pjzwn9z0q39y45adgsscy5q4mrl0wrav47lemwvk83gnjtwv3dggqzlgdsl", // change address
+    address: "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn", // change address
     value: 546,
   });
 
   psbt.addOutput({
-    address: "tb1pjzwn9z0q39y45adgsscy5q4mrl0wrav47lemwvk83gnjtwv3dggqzlgdsl", // change address
+    address: "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn", // change address
     value: change,
   });
 
@@ -174,7 +174,7 @@ export async function waitUntilUTXO(address: string) {
         clearInterval(intervalId);
       }
     };
-    intervalId = setInterval(checkForUtxo, 10000);
+    intervalId = setInterval(checkForUtxo, 5000);
   });
 }
 
@@ -196,6 +196,7 @@ export async function signAndSend(
 
     const tx = psbt.extractTransaction();
     console.log(`Broadcasting Transaction Hex: ${tx.toHex()}`);
+    console.log(tx.virtualSize())
     // const txid = await broadcast(tx.toHex());
     // console.log(`Success! Txid is ${txid}`);
   } else {
