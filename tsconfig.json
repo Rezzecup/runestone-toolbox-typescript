@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    // "module": "commonjs",                    
+    // "module": "esnext",
+    // "moduleResolution": "bundler",
+    "module": "commonjs",                    
     "target": "es2015",                          
     "lib": ["es6"],                     
     "allowJs": true,
