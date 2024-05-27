@@ -43,13 +43,29 @@ const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey 
 
 async function etching() {
 
-  const name = "CHAINWAVE•RESURSIVE•RUNE";
+  const name = "HARMONITECH•RESURSIVE•RUNE";
 
   const keyPair = wallet.ecPair;
 
   const ins = new EtchInscription();
 
-  ins.setContent("text/plain", Buffer.from("Chainwave Resursive Rune", "utf-8"));
+  const fee = 70000;
+
+  const HTMLContent = `<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Build Your Own Recursive Ordinal</title>
+    </head>
+    <body style="margin: 0px">
+      <div>
+        <img style="width:100%;margin:0px" src="/content/0e7ada8af1399f417e6a71eec3830cc9a048cfdc265e41cb6405d513eee9d971i0" />
+      </div>
+    </body>
+  </html>`;
+
+  ins.setContent("text/html;charset=utf-8", Buffer.from(HTMLContent, "utf8"));
   ins.setRune(name);
 
   const etching_script_asm = `${toXOnly(keyPair.publicKey).toString(
@@ -128,8 +144,6 @@ async function etching() {
     script: stone.encipher(),
     value: 0,
   });
-
-  const fee = 45000;
 
   const change = utxos[0].value - 546 - fee;
 

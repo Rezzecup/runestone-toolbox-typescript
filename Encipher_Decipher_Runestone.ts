@@ -4,7 +4,7 @@ import { Runestone, Transaction } from '@ordjs/runestone';
 const tx: any = {
   output: [{
     // // OP_RETURN OP_PUSHNUM_13 ...
-    script_pubkey: '6a5d0900c0a2331ce820a208',
+    script_pubkey: '00dbfeab01f711904e020000904e030000904e040000904e05',
     value: 0,
   }],
 };
