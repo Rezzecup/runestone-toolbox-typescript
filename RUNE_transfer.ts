@@ -44,13 +44,21 @@ async function mintWithTaproot() {
 
   const keyPair = wallet.ecPair;
   const edicts: any = [];
-  for (let i = 0; i < 30; i++) {
-    edicts.push({
-      id: new RuneId(2586233, 1009),
-      amount: 1000,
-      output: i++,
-    });
-  }
+  edicts.push({
+    id: new RuneId(2817883, 2295),
+    amount: 1000,
+    output: 2,
+  });
+  edicts.push({
+    id: new RuneId(2817883, 2295),
+    amount: 1000,
+    output: 3,
+  });
+  edicts.push({
+    id: new RuneId(2817883, 2295),
+    amount: 1000,
+    output: 50,
+  });
   const mintstone = new Runestone(
     edicts,
     none(),
@@ -67,21 +75,29 @@ async function mintWithTaproot() {
   const address = p2pktr.address ?? "";
   console.log(`Waiting till UTXO is detected at this Address: ${address}`);
 
-  const utxos = await waitUntilUTXO(address as string);
-  console.log(`Using UTXO ${utxos[104].txid}:${utxos[104].value}`);
+  const runeUTXO = {
+    txid: '000d62d718f9f958b9c69580e3146ef3d69a3c57005e955cf49da1fe8ba04503',
+    vout: 1,
+    value: 546
+  };
+  const btcUTXO = {
+    txid: '4e364992dc0c91eb6f997bd1e6a562e97600c4b1427f31f0517d18924e493a24',
+    vout: 1,
+    value: 9905934,
+  }
 
   const psbt = new Psbt({ network });
   psbt.addInput({
-    hash: utxos[2].txid,
-    index: utxos[2].vout,
-    witnessUtxo: { value: utxos[2].value, script: p2pktr.output! },
+    hash: runeUTXO.txid,
+    index: runeUTXO.vout,
+    witnessUtxo: { value: runeUTXO.value, script: p2pktr.output! },
     tapInternalKey: toXOnly(keyPair.publicKey),
   });
 
   psbt.addInput({
-    hash: utxos[104].txid,
-    index: utxos[104].vout,
-    witnessUtxo: { value: utxos[104].value, script: p2pktr.output! },
+    hash: btcUTXO.txid,
+    index: btcUTXO.vout,
+    witnessUtxo: { value: btcUTXO.value, script: p2pktr.output! },
     tapInternalKey: toXOnly(keyPair.publicKey),
   });
 
@@ -90,20 +106,33 @@ async function mintWithTaproot() {
     value: 0,
   });
 
-  for (let i = 0; i < 30; i++) {
-    psbt.addOutput({
-      address: "tb1pjzwn9z0q39y45adgsscy5q4mrl0wrav47lemwvk83gnjtwv3dggqzlgdsl", // rune receive address
-      value: 600,
-    });
-  }
+  psbt.addOutput({
+    address: "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn", // rune receive address
+    value: 546,
+  });
 
-  const fee = 5000;
+  psbt.addOutput({
+    address: "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn", // rune receive address
+    value: 546,
+  });
 
-  const change = utxos[104].value - fee - 18000;
+  psbt.addOutput({
+    address: "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn", // rune receive address
+    value: 546,
+  });
+
+  psbt.addOutput({
+    address: "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn", // rune receive address
+    value: 546,
+  });
+
+  const fee = 100000;
+
+  const change = btcUTXO.value - fee - 2200;
 
 
   psbt.addOutput({
-    address: "tb1pjzwn9z0q39y45adgsscy5q4mrl0wrav47lemwvk83gnjtwv3dggqzlgdsl", // change address
+    address: "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn", // change address
     value: change,
   });
 
@@ -113,7 +142,7 @@ async function mintWithTaproot() {
 // main
 mintWithTaproot();
 
-const blockstream = new axios.Axios({
+export const blockstream = new axios.Axios({
   baseURL: `https://mempool.space/testnet/api`,
 });
 
@@ -155,9 +184,10 @@ export async function signAndSend(
   address: string
 ) {
   if (process.env.NODE) {
-    psbt.signInput(0, keyPair);
 
+    psbt.signInput(0, keyPair);
     psbt.signInput(1, keyPair);
+    
     psbt.finalizeAllInputs();
 
     const tx = psbt.extractTransaction();
@@ -189,6 +219,10 @@ export async function signAndSend(
 }
 
 export async function broadcast(txHex: string) {
+  const blockstream = new axios.Axios({
+    baseURL: `https://mempool.space/testnet/api`,
+  });
+  
   const response: AxiosResponse<string> = await blockstream.post("/tx", txHex);
   return response.data;
 }
