@@ -12,7 +12,7 @@ export const getScriptPubkey = async (tx: string, address: string, networkType: 
   const output = res.data.vout.find((output: any) => output.scriptpubkey_address === address)
   return output.scriptpubkey;
 };
-
+//please add detailed comment about that mempool fetching api
 export const getUtxos = async (address: string, networkType: string): Promise<IUtxo[]> => {
   const url = `https://mempool.space/${networkType}/api/address/${address}/utxo`;
   const res = await axios.get(url);
