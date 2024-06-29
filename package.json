@@ -1,12 +1,12 @@
 {
-  "name": "utxo-management",
+  "name": "runestone-tools",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "merge": "npx tsx UTXO_merge",
-    "send": "npx tsx UTXO_send",
-    "split": "npx tsx UTXO_split"
+    "etch": "npx tsx RUNE_Etching",
+    "mint": "npx tsx RUNE_minting",
+    "transfer": "npx tsx RUNE_transfer"
   },
   "keywords": [],
   "author": "",
