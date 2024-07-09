@@ -27,29 +27,45 @@ import {
 import networkConfig from "config/network.config";
 
 import { SeedWallet } from "utils/SeedWallet";
-// import { WIFWallet } from 'utils/WIFWallet'
+import { WIFWallet } from 'utils/WIFWallet'
 
 initEccLib(ecc as any);
 declare const window: any;
 const ECPair: ECPairAPI = ECPairFactory(ecc);
 const network = networks.testnet;
-
 const networkType: string = networkConfig.networkType;
-const seed: string = process.env.MNEMONIC as string;
-// const privateKey: string = process.env.PRIVATE_KEY as string;
 
+// const seed: string = process.env.MNEMONIC as string;
+// const wallet = new SeedWallet({ networkType: networkType, seed: seed });
+
+const privateKey: string = process.env.PRIVATE_KEY as string;
+const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
 async function etching() {
-  const wallet = new SeedWallet({ networkType: networkType, seed: seed });
-  // const wallet = new WIFWallet({ networkType: networkType, privateKey: privateKey });
 
-  const name = "RUNEROCKSCHAINWAVE";
+  const name = "HARMONITECH•RESURSIVE•RUNE";
 
   const keyPair = wallet.ecPair;
 
   const ins = new EtchInscription();
 
-  ins.setContent("text/plain", Buffer.from("RuneRocksChainwave", "utf-8"));
+  const fee = 70000;
+
+  const HTMLContent = `<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Build Your Own Recursive Ordinal</title>
+    </head>
+    <body style="margin: 0px">
+      <div>
+        <img style="width:100%;margin:0px" src="/content/0e7ada8af1399f417e6a71eec3830cc9a048cfdc265e41cb6405d513eee9d971i0" />
+      </div>
+    </body>
+  </html>`;
+
+  ins.setContent("text/html;charset=utf-8", Buffer.from(HTMLContent, "utf8"));
   ins.setRune(name);
 
   const etching_script_asm = `${toXOnly(keyPair.publicKey).toString(
@@ -129,17 +145,15 @@ async function etching() {
     value: 0,
   });
 
-  const fee = 5000;
-
   const change = utxos[0].value - 546 - fee;
 
   psbt.addOutput({
-    address: "tb1pjzwn9z0q39y45adgsscy5q4mrl0wrav47lemwvk83gnjtwv3dggqzlgdsl", // change address
+    address: "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn", // change address
     value: 546,
   });
 
   psbt.addOutput({
-    address: "tb1pjzwn9z0q39y45adgsscy5q4mrl0wrav47lemwvk83gnjtwv3dggqzlgdsl", // change address
+    address: "tb1ppx220ln489s5wqu8mqgezm7twwpj0avcvle3vclpdkpqvdg3mwqsvydajn", // change address
     value: change,
   });
 
@@ -174,7 +188,7 @@ export async function waitUntilUTXO(address: string) {
         clearInterval(intervalId);
       }
     };
-    intervalId = setInterval(checkForUtxo, 10000);
+    intervalId = setInterval(checkForUtxo, 5000);
   });
 }
 
@@ -196,6 +210,7 @@ export async function signAndSend(
 
     const tx = psbt.extractTransaction();
     console.log(`Broadcasting Transaction Hex: ${tx.toHex()}`);
+    console.log(tx.virtualSize())
     // const txid = await broadcast(tx.toHex());
     // console.log(`Success! Txid is ${txid}`);
   } else {
