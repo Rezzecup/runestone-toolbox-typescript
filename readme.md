@@ -12,7 +12,7 @@ Before running the script, ensure you have the following dependencies installed:
 - `@bitcoinerlab/secp256k1`
 - `axios`
 - `runelib`
--  `cbor`
+-  `cbor` 
 
 You can install them using npm:
 
