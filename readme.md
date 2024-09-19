@@ -16,7 +16,7 @@ Before running the script, ensure you have the following dependencies installed:
 
 You can install them using npm:
  
-```sh
+```sh 
 npm install bitcoinjs-lib ecpair @bitcoinerlab/secp256k1 axios runelib
 ```
 
