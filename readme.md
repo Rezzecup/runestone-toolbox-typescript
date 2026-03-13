@@ -191,5 +191,5 @@ The script will output logs at various stages:
 ## Contact Info
 If you have technical issues and development inquiries, please contact me.
 
-- Telegram: https://t.me/rizz_cat/
-- Twitter: https://x.com/rez_cats/
+- Telegram: https://t.me/AuraTerminal/
+- Twitter: https://x.com/chain_sats/
